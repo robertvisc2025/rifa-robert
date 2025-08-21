@@ -15,7 +15,7 @@
     }
 
     .btn {
-      background: #009444;
+      background: #a8aaa9;
       color: white;
       border: none;
       padding: 15px 25px;
@@ -35,9 +35,9 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(10, 1fr); /* 🔹 10 colunas fixas */
+      grid-template-columns: repeat(10, 1fr); /* 10 colunas fixas */
       gap: 12px;
-      max-width: 900px; /* largura para caber certinho */
+      max-width: 900px;
       margin: 0 auto;
     }
 
@@ -48,21 +48,23 @@
       align-items: center;
       justify-content: center;
       border-radius: 50%;
-      background: #aee16b;
+      background: #aee16b; /* disponível */
       cursor: pointer;
       font-size: 20px;
       transition: 0.3s;
+      font-weight: bold;
+      color: black;
     }
 
     .number.sold {
-      background: #bdbdbd;
+      background: #a8aaa9; /* comprado/pago */
       color: white;
       font-weight: bold;
     }
 
     .number.reserved {
-      background: orange;
-      color: white;
+      background: #FFD700; /* reservado */
+      color: black;
       font-weight: bold;
     }
 
@@ -105,9 +107,9 @@
         div.textContent = i;
 
         if (rifa[i]) {
-          vendidos++;
           if (rifa[i].status === "pago") {
             div.classList.add("sold");
+            vendidos++;
           } else if (rifa[i].status === "reservado") {
             div.classList.add("reserved");
           }

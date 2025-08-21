@@ -7,146 +7,112 @@
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      margin: 20px;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
     }
 
     h1 {
       margin-bottom: 20px;
     }
 
+    .buttons {
+      margin-bottom: 25px;
+    }
+
     .btn {
       background: #009444;
       color: white;
       border: none;
-      padding: 10px 15px;
-      border-radius: 5px;
+      padding: 15px 25px; /* aumentei o tamanho */
+      border-radius: 8px;
       cursor: pointer;
-      margin: 5px;
+      margin: 8px;
+      font-size: 18px; /* maior no celular */
     }
 
-    .btn:hover {
-      background: #007a36;
-    }
-
-    .btn-container {
-      margin-bottom: 20px;
-    }
-
-    /* Container para rolagem em telas pequenas */
-    .table-container {
-      overflow-x: auto;
-    }
-
-    table {
-      margin: auto;
-      border-collapse: collapse;
-      font-size: 14px;
-      width: 90%;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); /* bolinhas maiores */
+      gap: 12px;
       max-width: 600px;
+      margin: 0 auto;
     }
 
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: center;
+    .number {
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #e0e0e0;
+      cursor: pointer;
+      font-size: 20px;
+      transition: 0.3s;
     }
 
-    th {
+    .number.selected {
       background: #009444;
       color: white;
-    }
-
-    /* Responsivo para celular */
-    @media (max-width: 600px) {
-      table {
-        font-size: 11px;
-      }
-      .btn {
-        padding: 8px 12px;
-        font-size: 12px;
-      }
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Rifa Robert Viscaia</h1>
+  <h1>Rifa do Robert Viscaia</h1>
 
-  <div class="btn-container">
-    <button class="btn" onclick="salvar()">Salvar</button>
-    <button class="btn" onclick="carregar()">Carregar</button>
-    <button class="btn" onclick="exportarPDF()">Exportar PDF</button>
+  <div class="buttons">
+    <button class="btn" onclick="selectAll()">Selecionar Todos</button>
+    <button class="btn" onclick="clearAll()">Limpar</button>
   </div>
 
-  <div class="table-container">
-    <table id="tabela">
-      <thead>
-        <tr>
-          <th>Número</th>
-          <th>Nome</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Gera 100 números -->
-        <script>
-          for (let i = 1; i <= 100; i++) {
-            document.write(`<tr><td>${i}</td><td contenteditable="true"></td></tr>`);
-          }
-        </script>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- jsPDF para gerar PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <div class="grid" id="grid"></div>
 
   <script>
-    // Salvar no Local Storage
-    function salvar() {
-      const linhas = document.querySelectorAll("#tabela tbody tr");
-      let dados = [];
-      linhas.forEach(linha => {
-        let numero = linha.cells[0].innerText;
-        let nome = linha.cells[1].innerText;
-        dados.push({ numero, nome });
-      });
-      localStorage.setItem("rifa", JSON.stringify(dados));
-      alert("Rifa salva com sucesso!");
-    }
+    const grid = document.getElementById("grid");
+    const totalNumbers = 100;
+    let selectedNumbers = JSON.parse(localStorage.getItem("selectedNumbers")) || [];
 
-    // Carregar do Local Storage
-    function carregar() {
-      let dados = JSON.parse(localStorage.getItem("rifa"));
-      if (!dados) {
-        alert("Nenhum dado salvo!");
-        return;
-      }
-      const linhas = document.querySelectorAll("#tabela tbody tr");
-      dados.forEach((item, i) => {
-        if (linhas[i]) {
-          linhas[i].cells[1].innerText = item.nome;
+    function renderGrid() {
+      grid.innerHTML = "";
+      for (let i = 1; i <= totalNumbers; i++) {
+        const div = document.createElement("div");
+        div.classList.add("number");
+        div.textContent = i;
+        if (selectedNumbers.includes(i)) {
+          div.classList.add("selected");
         }
-      });
-      alert("Rifa carregada com sucesso!");
+        div.onclick = () => toggleNumber(i);
+        grid.appendChild(div);
+      }
     }
 
-    // Exportar para PDF
-    async function exportarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      doc.text("Rifa Robert Viscaia", 14, 15);
-      doc.autoTable({
-        head: [['Número', 'Nome']],
-        body: Array.from(document.querySelectorAll("#tabela tbody tr")).map(linha => [
-          linha.cells[0].innerText,
-          linha.cells[1].innerText
-        ]),
-        startY: 20
-      });
-
-      doc.save("rifa.pdf");
+    function toggleNumber(num) {
+      if (selectedNumbers.includes(num)) {
+        selectedNumbers = selectedNumbers.filter(n => n !== num);
+      } else {
+        selectedNumbers.push(num);
+      }
+      saveAndRender();
     }
+
+    function selectAll() {
+      selectedNumbers = Array.from({ length: totalNumbers }, (_, i) => i + 1);
+      saveAndRender();
+    }
+
+    function clearAll() {
+      selectedNumbers = [];
+      saveAndRender();
+    }
+
+    function saveAndRender() {
+      localStorage.setItem("selectedNumbers", JSON.stringify(selectedNumbers));
+      renderGrid();
+    }
+
+    renderGrid();
   </script>
 </body>
 </html>

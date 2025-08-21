@@ -7,41 +7,43 @@
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 20px;
+      margin: 20px;
     }
 
     h1 {
       margin-bottom: 20px;
     }
 
-    .buttons {
-      margin-bottom: 25px;
-    }
-
     .btn {
       background: #009444;
       color: white;
       border: none;
-      padding: 15px 25px; /* aumentei o tamanho */
+      padding: 15px 25px; /* maior */
       border-radius: 8px;
       cursor: pointer;
       margin: 8px;
-      font-size: 18px; /* maior no celular */
+      font-size: 18px; /* maior */
+    }
+
+    .btn:hover {
+      background: #007a36;
+    }
+
+    .btn-container {
+      margin-bottom: 25px;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); /* bolinhas maiores */
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* bolinhas maiores */
       gap: 12px;
-      max-width: 600px;
+      max-width: 800px;
       margin: 0 auto;
     }
 
     .number {
-      width: 70px;
-      height: 70px;
+      width: 80px;
+      height: 80px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -52,27 +54,38 @@
       transition: 0.3s;
     }
 
-    .number.selected {
+    .number.sold {
       background: #009444;
+      color: white;
+      font-weight: bold;
+    }
+
+    .number.reserved {
+      background: orange;
       color: white;
       font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Rifa do Robert Viscaia</h1>
+  <h1>Rifa Robert Viscaia</h1>
 
-  <div class="buttons">
-    <button class="btn" onclick="selectAll()">Selecionar Todos</button>
-    <button class="btn" onclick="clearAll()">Limpar</button>
+  <div class="btn-container">
+    <button class="btn" onclick="abrirVenda()">Vender</button>
+    <button class="btn" onclick="exportarPDF()">Exportar PDF</button>
+    <button class="btn" onclick="resetar()">Resetar</button>
   </div>
 
   <div class="grid" id="grid"></div>
 
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
   <script>
     const grid = document.getElementById("grid");
     const totalNumbers = 100;
-    let selectedNumbers = JSON.parse(localStorage.getItem("selectedNumbers")) || [];
+    let rifa = JSON.parse(localStorage.getItem("rifa")) || {};
 
     function renderGrid() {
       grid.innerHTML = "";
@@ -80,36 +93,77 @@
         const div = document.createElement("div");
         div.classList.add("number");
         div.textContent = i;
-        if (selectedNumbers.includes(i)) {
-          div.classList.add("selected");
+
+        if (rifa[i]) {
+          if (rifa[i].status === "pago") {
+            div.classList.add("sold");
+          } else if (rifa[i].status === "reservado") {
+            div.classList.add("reserved");
+          }
+          div.title = `${rifa[i].nome} (${rifa[i].status})`;
         }
-        div.onclick = () => toggleNumber(i);
+
+        div.onclick = () => mostrarInfo(i);
         grid.appendChild(div);
       }
     }
 
-    function toggleNumber(num) {
-      if (selectedNumbers.includes(num)) {
-        selectedNumbers = selectedNumbers.filter(n => n !== num);
+    function mostrarInfo(num) {
+      if (rifa[num]) {
+        alert(`Número ${num}\nNome: ${rifa[num].nome}\nSituação: ${rifa[num].status}`);
       } else {
-        selectedNumbers.push(num);
+        alert(`Número ${num} está disponível.`);
       }
-      saveAndRender();
     }
 
-    function selectAll() {
-      selectedNumbers = Array.from({ length: totalNumbers }, (_, i) => i + 1);
-      saveAndRender();
-    }
+    function abrirVenda() {
+      const nome = prompt("Nome do comprador:");
+      if (!nome) return;
 
-    function clearAll() {
-      selectedNumbers = [];
-      saveAndRender();
-    }
+      const numeros = prompt("Números (separados por vírgula):");
+      if (!numeros) return;
 
-    function saveAndRender() {
-      localStorage.setItem("selectedNumbers", JSON.stringify(selectedNumbers));
+      const status = prompt("Status (pago ou reservado):", "pago");
+
+      numeros.split(",").map(n => n.trim()).forEach(num => {
+        if (num >= 1 && num <= totalNumbers) {
+          rifa[num] = { nome, status };
+        }
+      });
+
+      salvar();
       renderGrid();
+    }
+
+    function salvar() {
+      localStorage.setItem("rifa", JSON.stringify(rifa));
+    }
+
+    function resetar() {
+      if (confirm("Tem certeza que deseja limpar a rifa?")) {
+        localStorage.removeItem("rifa");
+        rifa = {};
+        renderGrid();
+      }
+    }
+
+    async function exportarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.text("Rifa Robert Viscaia", 14, 15);
+      let body = [];
+      for (let i = 1; i <= totalNumbers; i++) {
+        body.push([i, rifa[i] ? rifa[i].nome : ""]);
+      }
+
+      doc.autoTable({
+        head: [['Número', 'Nome']],
+        body: body,
+        startY: 20
+      });
+
+      doc.save("rifa.pdf");
     }
 
     renderGrid();

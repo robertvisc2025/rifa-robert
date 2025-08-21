@@ -6,28 +6,14 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #ffffff;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-    }
-    header {
-      background: #009444;
-      color: white;
-      width: 100%;
       text-align: center;
-      padding: 20px;
-      font-size: 24px;
-      font-weight: bold;
+      margin: 20px;
     }
-    .botoes {
-      margin: 20px 0;
-      text-align: center;
+
+    h1 {
+      margin-bottom: 20px;
     }
+
     .btn {
       background: #009444;
       color: white;
@@ -37,200 +23,130 @@
       cursor: pointer;
       margin: 5px;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 10px;
-      max-width: 500px;
-      margin: 0 auto 30px auto;
-      justify-items: center;
+
+    .btn:hover {
+      background: #007a36;
     }
-    .numero {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      font-weight: bold;
+
+    .btn-container {
+      margin-bottom: 20px;
+    }
+
+    /* Container para rolagem em telas pequenas */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      margin: auto;
+      border-collapse: collapse;
       font-size: 14px;
-      cursor: pointer;
-      transition: transform 0.2s, background 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #9DFF57;
+      width: 90%;
+      max-width: 600px;
     }
-    .numero:hover {
-      transform: scale(1.1);
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
     }
-    .reservado {
-      background: #FFD966 !important;
-    }
-    .pago {
-      background: #009444 !important;
+
+    th {
+      background: #009444;
       color: white;
     }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 400px;
-      width: 90%;
-      text-align: left;
-    }
-    label { display: block; margin-top: 10px; }
-    input, select { width: 100%; padding: 5px; margin-top: 5px; }
-  </style>
 
-  <!-- Scripts do PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-</head>
-<body>
-  <header>Rifa Robert Viscaia</header>
-
-  <div class="botoes">
-    <button class="btn" onclick="abrirModalVender()">Vender</button>
-    <button class="btn" onclick="exportarTabela()">Exportar Lista</button>
-  </div>
-
-  <div class="grid" id="rifa"></div>
-
-  <!-- Modal Vender -->
-  <div class="modal" id="modalVender">
-    <div class="modal-content">
-      <h3>Vender Números</h3>
-      <label>Nome:</label>
-      <input type="text" id="nomeComprador">
-      <label>Números (separados por vírgula):</label>
-      <input type="text" id="numerosEscolhidos">
-      <label>Status:</label>
-      <select id="statusCompra">
-        <option value="reservado">Reservado</option>
-        <option value="pago">Pago</option>
-      </select>
-      <button class="btn" onclick="salvarVenda()">Salvar</button>
-      <button class="btn" onclick="fecharModalVender()">Cancelar</button>
-    </div>
-  </div>
-
-  <!-- Modal Detalhes -->
-  <div class="modal" id="modalDetalhes">
-    <div class="modal-content">
-      <h3>Detalhes do Número</h3>
-      <p id="detalhesTexto"></p>
-      <button class="btn" onclick="fecharModalDetalhes()">Fechar</button>
-    </div>
-  </div>
-
-  <script>
-    let rifa = {};
-
-    const grid = document.getElementById("rifa");
-
-    // Criar os 100 botões
-    for (let i = 1; i <= 100; i++) {
-      const btn = document.createElement("div");
-      btn.className = "numero";
-      btn.textContent = i;
-      btn.onclick = () => mostrarDetalhes(i);
-      grid.appendChild(btn);
-    }
-
-    // Salvar no LocalStorage
-    function salvarLocal() {
-      localStorage.setItem("rifa", JSON.stringify(rifa));
-    }
-
-    // Carregar do LocalStorage
-    function carregarLocal() {
-      const dados = localStorage.getItem("rifa");
-      if (dados) {
-        rifa = JSON.parse(dados);
-        for (let i = 1; i <= 100; i++) {
-          if (rifa[i]) {
-            const btn = grid.children[i-1];
-            btn.classList.add(rifa[i].status);
-          }
-        }
+    /* Responsivo para celular */
+    @media (max-width: 600px) {
+      table {
+        font-size: 11px;
+      }
+      .btn {
+        padding: 8px 12px;
+        font-size: 12px;
       }
     }
+  </style>
+</head>
+<body>
+  <h1>Rifa Robert Viscaia</h1>
 
-    function abrirModalVender() {
-      document.getElementById("modalVender").style.display = "flex";
+  <div class="btn-container">
+    <button class="btn" onclick="salvar()">Salvar</button>
+    <button class="btn" onclick="carregar()">Carregar</button>
+    <button class="btn" onclick="exportarPDF()">Exportar PDF</button>
+  </div>
+
+  <div class="table-container">
+    <table id="tabela">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Nome</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Gera 100 números -->
+        <script>
+          for (let i = 1; i <= 100; i++) {
+            document.write(`<tr><td>${i}</td><td contenteditable="true"></td></tr>`);
+          }
+        </script>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- jsPDF para gerar PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <script>
+    // Salvar no Local Storage
+    function salvar() {
+      const linhas = document.querySelectorAll("#tabela tbody tr");
+      let dados = [];
+      linhas.forEach(linha => {
+        let numero = linha.cells[0].innerText;
+        let nome = linha.cells[1].innerText;
+        dados.push({ numero, nome });
+      });
+      localStorage.setItem("rifa", JSON.stringify(dados));
+      alert("Rifa salva com sucesso!");
     }
-    function fecharModalVender() {
-      document.getElementById("modalVender").style.display = "none";
-    }
 
-    function salvarVenda() {
-      const nome = document.getElementById("nomeComprador").value;
-      const numeros = document.getElementById("numerosEscolhidos").value.split(",").map(n => n.trim());
-      const status = document.getElementById("statusCompra").value;
-
-      numeros.forEach(num => {
-        const n = parseInt(num);
-        if (!isNaN(n) && n >= 1 && n <= 100) {
-          rifa[n] = { nome, status };
-          const btn = grid.children[n-1];
-          btn.classList.remove("reservado", "pago");
-          btn.classList.add(status);
+    // Carregar do Local Storage
+    function carregar() {
+      let dados = JSON.parse(localStorage.getItem("rifa"));
+      if (!dados) {
+        alert("Nenhum dado salvo!");
+        return;
+      }
+      const linhas = document.querySelectorAll("#tabela tbody tr");
+      dados.forEach((item, i) => {
+        if (linhas[i]) {
+          linhas[i].cells[1].innerText = item.nome;
         }
       });
-
-      salvarLocal();
-      fecharModalVender();
+      alert("Rifa carregada com sucesso!");
     }
 
-    function mostrarDetalhes(num) {
-      const dados = rifa[num];
-      const texto = dados ? `Número: ${num}<br>Nome: ${dados.nome}<br>Status: ${dados.status}` 
-                          : `Número ${num} está disponível.`;
-      document.getElementById("detalhesTexto").innerHTML = texto;
-      document.getElementById("modalDetalhes").style.display = "flex";
-    }
-
-    function fecharModalDetalhes() {
-      document.getElementById("modalDetalhes").style.display = "none";
-    }
-
-    // Exportar PDF
-    function exportarTabela() {
+    // Exportar para PDF
+    async function exportarPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
-      doc.setFontSize(16);
-      doc.text("Tabela da Rifa - Robert Viscaia", 14, 15);
-
-      let dados = [];
-      for (let i = 1; i <= 100; i++) {
-        let nome = rifa[i]?.nome || "";
-        dados.push([i, nome]);
-      }
-
+      doc.text("Rifa Robert Viscaia", 14, 15);
       doc.autoTable({
-        head: [["Números", "Nomes"]],
-        body: dados,
-        startY: 25,
-        styles: { halign: "center" },
-        headStyles: { fillColor: [0, 148, 68] },
-        theme: "grid"
+        head: [['Número', 'Nome']],
+        body: Array.from(document.querySelectorAll("#tabela tbody tr")).map(linha => [
+          linha.cells[0].innerText,
+          linha.cells[1].innerText
+        ]),
+        startY: 20
       });
 
       doc.save("rifa.pdf");
     }
-
-    // Carregar dados ao abrir a página
-    carregarLocal();
   </script>
 </body>
 </html>
